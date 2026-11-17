@@ -52,7 +52,7 @@ Before writing code by hand, see how modern QA engineers generate browser script
 
 Make sure your virtual environment is active (`.\.venv\Scripts\Activate.ps1`) and run:
 ```powershell
-playwright codegen http://localhost:8000
+playwright codegen --channel msedge http://localhost:8000
 ```
 
 1. **Two windows will open:** a Chromium browser showing **VaultMart** and the **Playwright Inspector**.
@@ -136,6 +136,10 @@ Once all **5 tests pass** (`pytest -v --headed --slowmo 500`), submit the follow
 
 ## 🛠️ Troubleshooting
 
+* **Windows Smart App Control blocks Playwright / Chromium:**
+  1. Pull the latest repo (`git pull`): `conftest.py` now automatically uses the **Microsoft-signed Edge browser (`--channel msedge`)** instead of the unsigned Chromium binary, and `setup.ps1` runs `Unblock-File` on `.venv`.
+  2. For `codegen`, pass `--channel msedge`: `playwright codegen --channel msedge http://localhost:8000`.
+  3. If Smart App Control on a student VM still blocks `.venv\Lib\site-packages\playwright\driver\node.exe`, open **Windows Security $\rightarrow$ App & browser control $\rightarrow$ Smart App Control settings $\rightarrow$ Off**.
 * **`setup.ps1 cannot be loaded because running scripts is disabled`:**
   Run `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass` first, then run `.\setup.ps1`.
 * **`pytest` or `playwright` is not recognized:**

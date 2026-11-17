@@ -71,8 +71,9 @@ Write-Host "[3/5] Installing Flask, Pytest, and Playwright packages..." -Foregro
 .\.venv\Scripts\python.exe -m pip install --upgrade pip --quiet
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 
-# 4. Install Playwright's isolated Chromium browser (No Chrome installation needed!)
-Write-Host "[4/5] Downloading Playwright Chromium browser binary..." -ForegroundColor Yellow
+# 4. Unblock .venv binaries for Windows Smart App Control & configure browser
+Write-Host "[4/5] Unblocking Playwright driver binaries for Windows Smart App Control..." -ForegroundColor Yellow
+Get-ChildItem -Path ".\.venv" -Recurse -ErrorAction SilentlyContinue | Unblock-File -ErrorAction SilentlyContinue
 .\.venv\Scripts\python.exe -m playwright install chromium
 
 # 5. Start the Target Web Application (Docker Compose or Native Fallback)
@@ -102,7 +103,7 @@ Write-Host "==========================================================" -Foregro
 Write-Host ""
 Write-Host "Try these commands next:" -ForegroundColor Cyan
 Write-Host "  0. Activate your venv in this window:  .\.venv\Scripts\Activate.ps1" -ForegroundColor Yellow
-Write-Host "  1. Record a test interactively:        playwright codegen http://localhost:8000"
+Write-Host "  1. Record a test interactively:        playwright codegen --channel msedge http://localhost:8000"
 Write-Host "  2. Run tests (fast headless):          pytest -v"
 Write-Host "  3. Watch browser live (headed):        pytest -v --headed"
 Write-Host "  4. Watch in SLOW MOTION:               pytest -v --headed --slowmo 800"

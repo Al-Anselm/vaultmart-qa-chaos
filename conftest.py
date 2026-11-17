@@ -1,3 +1,5 @@
+import os
+import sys
 import socket
 import threading
 import time
@@ -8,6 +10,26 @@ from app.server import app
 def is_port_in_use(port: int) -> bool:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         return s.connect_ex(("127.0.0.1", port)) == 0
+
+
+@pytest.fixture(scope="session")
+def browser_type_launch_args(browser_type_launch_args):
+    """
+    On Windows machines with Smart App Control (SAC) enabled, the unsigned
+    open-source Chromium binary downloaded by Playwright can be blocked.
+    Using the pre-installed, Microsoft-signed 'msedge' channel bypasses SAC!
+    """
+    if sys.platform == "win32":
+        edge_paths = [
+            r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+            r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
+        ]
+        if any(os.path.exists(p) for p in edge_paths):
+            return {
+                **browser_type_launch_args,
+                "channel": "msedge",
+            }
+    return browser_type_launch_args
 
 
 @pytest.fixture(scope="session", autouse=True)
