@@ -9,20 +9,56 @@ Write-Host "==========================================================" -Foregro
 Write-Host " ⚡ INFT 2700: VaultMart Browser QA & Red-Team Lab Setup  " -ForegroundColor Cyan
 Write-Host "==========================================================" -ForegroundColor Cyan
 
-# 1. Check for Python
-if (-not (Get-Command python -ErrorAction SilentlyContinue)) {
-    Write-Host "[1/5] Python not found. Installing Python 3.12 via winget..." -ForegroundColor Yellow
-    winget install Python.Python.3.12 --silent --accept-source-agreements --accept-package-agreements
-    # Refresh PATH in current session
-    $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
-} else {
-    Write-Host "[1/5] Python detected: $(python --version)" -ForegroundColor Green
+function Find-RealPython {
+    # 1. Check standard user and system install paths first (bypasses Windows Store stub!)
+    $candidates = @()
+    $candidates += Get-ChildItem -Path "$env:LOCALAPPDATA\Programs\Python\Python3*\python.exe" -ErrorAction SilentlyContinue | Sort-Object FullName -Descending
+    $candidates += Get-ChildItem -Path "C:\Program Files\Python3*\python.exe" -ErrorAction SilentlyContinue | Sort-Object FullName -Descending
+    $candidates += Get-ChildItem -Path "C:\Python3*\python.exe" -ErrorAction SilentlyContinue | Sort-Object FullName -Descending
+
+    foreach ($c in $candidates) {
+        if ($c.FullName -notlike "*WindowsApps*") {
+            return $c.FullName
+        }
+    }
+
+    # 2. Check if 'python' in PATH is real (not the Microsoft Store alias stub)
+    $cmd = Get-Command python -ErrorAction SilentlyContinue
+    if ($cmd -and ($cmd.Source -notlike "*WindowsApps*")) {
+        $ver = & $cmd.Source --version 2>&1
+        if ($LASTEXITCODE -eq 0 -and ($ver -match "Python 3")) {
+            return $cmd.Source
+        }
+    }
+
+    return $null
 }
 
-# 2. Create Virtual Environment
-if (-not (Test-Path ".venv")) {
+# 1. Check for Real Python (ignoring the WindowsApps Microsoft Store stub)
+$pythonExe = Find-RealPython
+
+if (-not $pythonExe) {
+    Write-Host "[1/5] Real Python not found (only Windows Store stub present). Installing Python 3.12 via winget..." -ForegroundColor Yellow
+    winget install Python.Python.3.12 --scope user --accept-source-agreements --accept-package-agreements
+    # Refresh PATH in current session
+    $env:Path = [System.Environment]::GetEnvironmentVariable("Path","User") + ";" + [System.Environment]::GetEnvironmentVariable("Path","Machine")
+    $pythonExe = Find-RealPython
+}
+
+if (-not $pythonExe) {
+    Write-Host "[ERROR] Could not locate python.exe after winget install. Please close and reopen PowerShell, then run .\setup.ps1 again." -ForegroundColor Red
+    exit 1
+}
+
+Write-Host "[1/5] Python detected: $(& $pythonExe --version) ($pythonExe)" -ForegroundColor Green
+
+# 2. Create Virtual Environment (remove broken .venv if it was incomplete)
+if (-not (Test-Path ".\.venv\Scripts\python.exe")) {
+    if (Test-Path ".venv") {
+        Remove-Item -Recurse -Force ".venv"
+    }
     Write-Host "[2/5] Creating local Python virtual environment (.venv)..." -ForegroundColor Yellow
-    python -m venv .venv
+    & $pythonExe -m venv .venv
 } else {
     Write-Host "[2/5] Virtual environment (.venv) already exists." -ForegroundColor Green
 }
