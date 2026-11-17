@@ -32,12 +32,12 @@ if (-not (Test-Path ".venv")) {
 
 # 3. Install Python dependencies (Flask, Pytest, Playwright)
 Write-Host "[3/5] Installing Flask, Pytest, and Playwright packages..." -ForegroundColor Yellow
-pip install --upgrade pip --quiet
-pip install -r requirements.txt
+.\.venv\Scripts\python.exe -m pip install --upgrade pip --quiet
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
 
 # 4. Install Playwright's isolated Chromium browser (No Chrome installation needed!)
 Write-Host "[4/5] Downloading Playwright Chromium browser binary..." -ForegroundColor Yellow
-playwright install chromium
+.\.venv\Scripts\python.exe -m playwright install chromium
 
 # 5. Start the Target Web Application (Docker Compose or Native Fallback)
 Write-Host "[5/5] Starting VaultMart Target Web Application on port 8000..." -ForegroundColor Yellow
@@ -65,8 +65,9 @@ Write-Host "    http://localhost:8000" -ForegroundColor Yellow
 Write-Host "==========================================================" -ForegroundColor Green
 Write-Host ""
 Write-Host "Try these commands next:" -ForegroundColor Cyan
-Write-Host "  1. Record a test interactively:   playwright codegen http://localhost:8000"
-Write-Host "  2. Run tests (fast headless):     pytest -v"
-Write-Host "  3. Watch browser live (headed):   pytest -v --headed"
-Write-Host "  4. Watch in SLOW MOTION:          pytest -v --headed --slowmo 800"
+Write-Host "  0. Activate your venv in this window:  .\.venv\Scripts\Activate.ps1" -ForegroundColor Yellow
+Write-Host "  1. Record a test interactively:        playwright codegen http://localhost:8000"
+Write-Host "  2. Run tests (fast headless):          pytest -v"
+Write-Host "  3. Watch browser live (headed):        pytest -v --headed"
+Write-Host "  4. Watch in SLOW MOTION:               pytest -v --headed --slowmo 800"
 Write-Host ""
